@@ -1,0 +1,76 @@
+.preview-container {
+    display: flex;
+    height: 100%;
+    background: white;
+  }
+  
+  .preview-area {
+    flex: 1;
+    padding: 24px;
+    position: relative;
+    overflow: auto;
+  }
+  
+  .edit-mode .preview-area {
+    cursor: crosshair;
+  }
+  
+  .edit-mode .preview-area * {
+    cursor: crosshair !important;
+  }
+  
+  .preview-loading,
+  .preview-error,
+  .preview-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    flex-direction: column;
+    padding: 24px;
+  }
+  
+  .preview-error {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  
+  .preview-error h3 {
+    color: #dc2626;
+    margin: 0 0 16px 0;
+  }
+  
+  .preview-error pre {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 16px;
+    color: #dc2626;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    overflow-x: auto;
+  }
+  
+  .loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .element-overlay {
+    pointer-events: none !important;
+  }
+  

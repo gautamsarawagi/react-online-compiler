@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useCallback } from "react"
 import * as React from "react"
 import { transform } from "@babel/standalone"
@@ -47,13 +45,13 @@ function detectComponent(moduleScope: any, executedResult: any): React.Component
       key[0] === key[0].toUpperCase() &&
       key !== "React" &&
       key !== "Fragment" &&
-      !key.startsWith("use") 
+      !key.startsWith("use")
     ) {
       return value
     }
   }
 
-  throw new Error("No valid React component found. Make sure to export your component as default.")
+  throw new Error("No valid React component found")
 }
 
 export function useCodeExecution(code: string): UseCodeExecutionResult {
@@ -94,14 +92,18 @@ export function useCodeExecution(code: string): UseCodeExecutionResult {
       }
 
       const func = new Function(...Object.keys(moduleScope), result.code)
-
       const executedResult = func.apply(moduleScope, Object.values(moduleScope))
-
       const Component = detectComponent(moduleScope, executedResult)
 
       setComponent(() => Component)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred"
+      let errorMessage = "Unknown error occurred"
+      if (err instanceof Error) {
+        errorMessage = err.message
+        if (errorMessage.includes("Unexpected token")) {
+          errorMessage = `Syntax Error: ${errorMessage}. Check for missing commas, quotes, or brackets.`
+        }
+      }
       setError(errorMessage)
       setComponent(null)
     } finally {

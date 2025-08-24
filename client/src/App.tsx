@@ -16,6 +16,8 @@ function MyComponent() {
       <button onClick={() => setCount(count + 1)}>
         Increment
       </button>
+      <input type="text" placeholder="Enter your name" />
+      <a href="https://www.google.com">Google</a>
     </div>
   )
 }
@@ -25,11 +27,20 @@ export default MyComponent`
 function App() {
   const [code, setCode] = useState(DEFAULT_CODE)
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('preview')
+  const [editMode, setEditMode] = useState(false)
   
   const { component, error, isLoading } = useCodeExecution(code)
   
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode)
+  }, [])
+
+  const handleCodeUpdate = useCallback((updatedCode: string) => {
+    console.log('App.handleCodeUpdate called:', { 
+      codeLength: updatedCode.length,
+      preview: updatedCode.substring(0, 100) + '...'
+    })
+    setCode(updatedCode)
   }, [])
 
   return (
@@ -49,6 +60,14 @@ function App() {
           >
             Code
           </button>
+          {activeTab === 'preview' && (
+            <button 
+              className={`tab edit-mode-btn ${editMode ? 'active' : ''}`}
+              onClick={() => setEditMode(!editMode)}
+            >
+              {editMode ? 'Exit Edit' : 'Edit Mode'}
+            </button>
+          )}
         </nav>
       </header>
 
@@ -63,6 +82,9 @@ function App() {
             component={component}
             error={error}
             isLoading={isLoading}
+            editMode={editMode}
+            code={code}
+            onCodeUpdate={handleCodeUpdate}
           />
         )}
       </main>
