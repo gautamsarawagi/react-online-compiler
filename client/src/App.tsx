@@ -1,99 +1,73 @@
-import { useState, useRef, useEffect } from "react";
-import { CodeExecutor } from "./components/CodeExecutor";
-import { CodeEditor } from "./components/CodeEditor";
-import { VisualEditor } from "./components/VisualEditor";
-import { sampleString } from "./utils/code";
-import type { ExecutionResult } from "./types";
-import "./App.css";
+import { useState, useCallback } from 'react'
+import { CodeEditor } from './components/CodeEditor'
+import { Preview } from './components/Preview'
+import { useCodeExecution } from './hooks/useCodeExecution'
+import './App.css'
+
+const DEFAULT_CODE = `import React, { useState } from 'react'
+
+function MyComponent() {
+  const [count, setCount] = useState(0)
+  
+  return (
+    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+      <h2>Hello, world!</h2>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  )
+}
+
+export default MyComponent`
 
 function App() {
-  const [code, setCode] = useState(sampleString.trim());
-  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'code' | 'visual'>('visual');
+  const [code, setCode] = useState(DEFAULT_CODE)
+  const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('preview')
   
-  const codeExecutorRef = useRef<{ executeCode: (code: string) => Promise<void> }>(null);
-
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-    executeCode(newCode);
-  };
-
-  const executeCode = async (codeToExecute?: string) => {
-    if (!codeExecutorRef.current) return;
-    
-    setIsExecuting(true);
-    try {
-      await codeExecutorRef.current.executeCode(codeToExecute || code);
-    } finally {
-      setIsExecuting(false);
-    }
-  };
-
-  const handleElementUpdate = (updatedCode: string) => {
-    setCode(updatedCode);
-    executeCode(updatedCode);
-  };
-
-  useEffect(() => {
-    if (code && executionResult !== null) {
-      executeCode();
-    }
-  }, [code]);
-
-  useEffect(() => {
-    if (executionResult === null && codeExecutorRef.current) {
-     const timer = setTimeout(() => {
-        executeCode();
-      }, 100);  
-      
-      return () => clearTimeout(timer);
-    }
-  }, [executionResult]);
+  const { component, error, isLoading } = useCodeExecution(code)
+  
+  const handleCodeChange = useCallback((newCode: string) => {
+    setCode(newCode)
+  }, [])
 
   return (
     <div className="app">
-      <div className="app-header">
-        <h1>React Visual Editor</h1>
-        <div className="tabs">
+      <header className="app-header">
+        <h1>React Code Editor</h1>
+        <nav className="tabs">
           <button 
-            className={`tab ${activeTab === 'visual' ? 'active' : ''}`}
-            onClick={() => setActiveTab('visual')}
+            className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('preview')}
           >
-            Visual Editor
+            Preview
           </button>
           <button 
-            className={`tab ${activeTab === 'code' ? 'active' : ''}`}
-            onClick={() => setActiveTab('code')}
+            className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
+            onClick={() => setActiveTab('editor')}
           >
-            Code Editor
+            Code
           </button>
-        </div>
-      </div>
-      
-      <div className="app-body">
-        <CodeExecutor
-          ref={codeExecutorRef}
-          onResult={setExecutionResult}
-        />
-        
-        {activeTab === 'code' ? (
+        </nav>
+      </header>
+
+      <main className="app-main">
+        {activeTab === 'editor' ? (
           <CodeEditor
             value={code}
             onChange={handleCodeChange}
-            isExecuting={isExecuting}
           />
         ) : (
-          <VisualEditor
-            code={code}
-            executionResult={executionResult}
-            isExecuting={isExecuting}
-            onCodeUpdate={handleElementUpdate}
+          <Preview
+            component={component}
+            error={error}
+            isLoading={isLoading}
           />
         )}
-      </div>
+      </main>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
