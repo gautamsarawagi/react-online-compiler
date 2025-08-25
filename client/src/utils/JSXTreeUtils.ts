@@ -160,13 +160,11 @@ export class JSXTreeManipulator {
   private buildStyleValue(existingStyleAttr: any, property: string, value: string): string {
     let styleProps: Record<string, string> = {}
     
-    // Parse existing styles if they exist
     if (existingStyleAttr && existingStyleAttr.value) {
-      // Handle JSX expression {{}}, literal string, etc.
       if (existingStyleAttr.value.type === 'JSXExpressionContainer') {
         const expr = existingStyleAttr.value.expression
         if (expr.type === 'ObjectExpression') {
-          // Parse object properties
+
           for (const prop of expr.properties) {
             if (prop.type === 'Property' && prop.key.type === 'Identifier') {
               const key = prop.key.name
@@ -277,7 +275,7 @@ export class JSXTreeManipulator {
           index: index
         })
       } else if (parent === containerRef) {
-        // This is a direct child of the container (the root JSX element)
+
         const siblings = Array.from(parent.children)
         const sameTagSiblings = siblings.filter((sibling: Element) => 
           sibling.tagName.toLowerCase() === current.tagName.toLowerCase()

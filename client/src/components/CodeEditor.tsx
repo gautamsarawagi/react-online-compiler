@@ -16,7 +16,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange }) => {
     <div className="code-editor">
       <Editor
         height="100%"
-        defaultLanguage="typescript"
+        defaultLanguage="javascript"
         value={value}
         onChange={handleEditorChange}
         theme="vs-dark"
