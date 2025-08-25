@@ -7,6 +7,8 @@ import { useCodeExecution } from '../hooks/useCodeExecution'
 import { DEFAULT_CODE } from '../utils/default-code'
 import './Project.css'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export const Project = () => {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -20,7 +22,7 @@ export const Project = () => {
     queryKey: ['component', projectId],
     queryFn: async () => {
       if (!projectId) return null
-      const response = await fetch(`/api/preview/${projectId}`)
+      const response = await fetch(`${API_URL}/api/preview/${projectId}`)
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.message)
@@ -32,7 +34,7 @@ export const Project = () => {
 
   const updateComponentMutation = useMutation({
     mutationFn: async ({ id, code }: { id: string, code: string }) => {
-      const response = await fetch(`/api/component/${id}`, {
+      const response = await fetch(`${API_URL}/api/component/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

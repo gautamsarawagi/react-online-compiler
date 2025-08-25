@@ -4,13 +4,15 @@ import './Home.css'
 import { useNavigate } from "react-router-dom"
 import { useMutation } from "@tanstack/react-query"
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export const Home = () => {
   const [code, setCode] = useState("")
   const navigate = useNavigate()
 
   const createComponentMutation = useMutation({
     mutationFn: async (code: string) => {
-      const response = await fetch('/api/component', {
+      const response = await fetch(`${API_URL}/api/component`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
