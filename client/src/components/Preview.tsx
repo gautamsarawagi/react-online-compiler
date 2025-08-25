@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, type FC, Suspense, type ComponentType } 
 import { PropertyPanel } from "./PropertyPanel"
 import "./Preview.css"
 import { extractElementProperties, type ElementProperties } from "../utils/PreviewUtils"
+import { JSXTreeManipulator } from "../utils/JSXTreeUtils"
 
 interface PreviewProps {
   component: ComponentType | null
@@ -15,23 +16,17 @@ interface PreviewProps {
 interface SelectedElement {
   element: HTMLElement
   elementSelector: string
+  elementPath: Array<{tagName: string, index: number}>
   properties: ElementProperties
 }
 
 export const Preview: FC<PreviewProps> = ({ component: Component, error, isLoading, editMode, code, onCodeUpdate }) => {
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
-  const previewRef = useRef<HTMLDivElement | null>(null)
+  const previewRef = useRef<HTMLDivElement | null>(null)  
 
   const getElementSelector = (element: HTMLElement): string => {
-    if (!previewRef.current) return ""
-    
-    const tagName = element.tagName.toLowerCase()
-    const textContent = element.textContent?.trim() || ""
-    const parent = element.parentElement
-    const siblings = parent ? Array.from(parent.children) : []
-    const index = siblings.indexOf(element)
-    
-    return `${tagName}:nth-child(${index + 1}):contains("${textContent.substring(0, 20)}")`
+    const path = JSXTreeManipulator.getElementPath(element, previewRef.current)
+    return path.map(p => `${p.tagName}:nth-child(${p.index + 1})`).join(' > ')
   }
 
   const handleElementClick = useCallback(
@@ -48,11 +43,13 @@ export const Preview: FC<PreviewProps> = ({ component: Component, error, isLoadi
       }
 
       const elementSelector = getElementSelector(target)
+      const elementPath = JSXTreeManipulator.getElementPath(target, previewRef.current)
       const properties = extractElementProperties(target)
 
       setSelectedElement({
         element: target,
         elementSelector,
+        elementPath,
         properties,
       })
     },
@@ -60,16 +57,23 @@ export const Preview: FC<PreviewProps> = ({ component: Component, error, isLoadi
   )
 
   const updateCodeWithProperty = useCallback((property: keyof ElementProperties, value: string, selectedEl: SelectedElement) => {
-    
-    let updatedCode = code
-
-    if (property === "textContent") {
-      updatedCode = updateTextContentInCode(code, selectedEl, value)
-    } else {
-      updatedCode = updateStyleInCode(code, selectedEl, property, value)
+    try {
+      const manipulator = new JSXTreeManipulator(code)
+      const elementPath = selectedEl.elementPath
+      
+      let updatedCode: string
+      
+      if (property === "textContent") {
+        updatedCode = manipulator.updateElementText(elementPath, value)
+      } else {
+        updatedCode = manipulator.updateElementStyle(elementPath, property, value)
+      }
+      
+      onCodeUpdate(updatedCode)
+    } catch (error) {
+      console.error('Failed to update code:', error)
+      onCodeUpdate(code)
     }
-    
-    onCodeUpdate(updatedCode)
   }, [code, onCodeUpdate])
 
   const handlePropertyChange = useCallback(
@@ -100,118 +104,6 @@ export const Preview: FC<PreviewProps> = ({ component: Component, error, isLoadi
     },
     [selectedElement, updateCodeWithProperty],
   )
-
-  const updateTextContentInCode = (code: string, selectedEl: SelectedElement, newText: string): string => {    
-    const lines = code.split('\n')
-    const { element } = selectedEl
-    const originalText = element.textContent?.trim() || ""
-    const tagName = element.tagName.toLowerCase()
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      
-      if (line.includes(`>${originalText}<`)) {
-        lines[i] = line.replace(`>${originalText}<`, `>${newText}<`)
-        return lines.join('\n')
-      }
-    }
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      
-      const tagRegex = new RegExp(`(<${tagName}[^>]*>)([^<]*)(</|<)`)
-      const match = line.match(tagRegex)
-      
-      if (match) {
-        const currentContent = match[2].trim()
-        
-        if (currentContent && !currentContent.includes('{')) {
-          lines[i] = line.replace(tagRegex, `$1${newText}$3`)
-          return lines.join('\n')
-        }
-      }
-    }
-    
-    return lines.join('\n')
-  }
-
-  const updateStyleInCode = (code: string, selectedEl: SelectedElement, property: string, value: string): string => {
-    
-    const lines = code.split('\n')
-    const { element } = selectedEl
-    const tagName = element.tagName.toLowerCase()
-    const textContent = element.textContent?.trim() || ""
-    const styleProperty = property === 'backgroundColor' ? 'backgroundColor' : property
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      
-      if (line.includes(`<${tagName}`) && line.includes(`>${textContent}<`)) {
-      } else if (line.includes(`<${tagName}`)) {
-
-        const tagRegex = new RegExp(`<${tagName}[^>]*>([^<]*)<`)
-        const match = line.match(tagRegex)
-        
-        if (match) {
-          const lineTextContent = match[1].trim()
-
-          if (!lineTextContent.includes('{') || textContent === '') {
-          } else {
-            continue
-          }
-        } else {
-          continue
-        }
-      } else {
-        continue
-      }
-      
-      {
-        // Check if style attribute already exists
-        const styleMatch = line.match(/style=\{\{([^}]*)\}\}/)
-        
-        if (styleMatch) {
-          // Parse and update existing styles
-          const existingStyles = styleMatch[1].trim()
-          const styles: string[] = []
-          
-          // Keep existing styles except the one we're updating
-          if (existingStyles) {
-            const parts = existingStyles.split(',')
-            for (const part of parts) {
-              const trimmed = part.trim()
-              if (trimmed && !trimmed.startsWith(styleProperty + ':')) {
-                styles.push(trimmed)
-              }
-            }
-          }
-          
-          // Add the new style
-          styles.push(`${styleProperty}: '${value}'`)
-          
-          // Replace the style attribute
-          const newStyleContent = styles.join(', ')
-          lines[i] = line.replace(
-            /style=\{\{[^}]*\}\}/,
-            `style={{${newStyleContent}}}`
-          )
-        } else {
-          // Add new style attribute
-          const tagMatch = line.match(new RegExp(`<${tagName}([^>]*)`))
-          if (tagMatch) {
-            const newStyleAttr = ` style={{${styleProperty}: '${value}'}}`
-            lines[i] = line.replace(
-              new RegExp(`<${tagName}([^>]*)`),
-              `<${tagName}$1${newStyleAttr}`
-            )
-          }
-        }
-        break
-      }
-    }
-    
-    return lines.join('\n')
-  }
 
   if (isLoading) {
     return (

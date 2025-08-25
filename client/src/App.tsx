@@ -36,10 +36,6 @@ function App() {
   }, [])
 
   const handleCodeUpdate = useCallback((updatedCode: string) => {
-    console.log('App.handleCodeUpdate called:', { 
-      codeLength: updatedCode.length,
-      preview: updatedCode.substring(0, 100) + '...'
-    })
     setCode(updatedCode)
   }, [])
 

@@ -1,5 +1,6 @@
 import { useState, type FC } from "react"
 import './PropertyPanel.css'
+
 interface ElementProperties {
   textContent: string
   color: string
@@ -23,7 +24,7 @@ interface PropertyPanelProps {
 }
 
 export const PropertyPanel: FC<PropertyPanelProps> = ({ selectedElement, onPropertyChange, onClose }) => {
-  const [activeTab, setActiveTab] = useState<"content" | "style">("content")
+  const [activeTab, setActiveTab] = useState<"content" | "style">("style")
 
   const renderInput = (key: keyof ElementProperties, label: string, type: "text" | "color" = "text") => {
     const value = selectedElement.properties[key]
@@ -91,9 +92,11 @@ export const PropertyPanel: FC<PropertyPanelProps> = ({ selectedElement, onPrope
       </div>
 
       <div className="panel-tabs">
-        <button className={activeTab === "content" ? "active" : ""} onClick={() => setActiveTab("content")}>
-          Content
-        </button>
+        {selectedElement.properties.textContent !== "" && (
+          <button className={activeTab === "content" ? "active" : ""} onClick={() => setActiveTab("content")}>
+            Content
+          </button>
+        )}
         <button className={activeTab === "style" ? "active" : ""} onClick={() => setActiveTab("style")}>
           Style
         </button>
