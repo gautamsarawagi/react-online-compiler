@@ -106,23 +106,6 @@ Using only Babel for AST manipulation would be **overhead** because:
 - Called automatically on visual edits
 - Syncs changes back to database
 
-## Supported Edits
-
-### Text Elements
-- Modify text content directly
-- Updates JSX text nodes in AST
-
-### Styling Properties
-- Colors (background, text, border)
-- Sizing (width, height, padding, margin)
-- Typography (font-weight, font-size)
-- Layout (display, position)
-
-### Element Attributes
-- Add/remove CSS classes
-- Modify inline styles
-- Update element properties
-
 ## Data Flow
 
 1. **User pastes code** → Babel transforms JSX → Component renders
@@ -143,3 +126,4 @@ cd server
 npm install
 npm run dev
 ```
+
