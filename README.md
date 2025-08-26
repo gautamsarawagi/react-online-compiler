@@ -13,7 +13,7 @@ This project implements the core requirements from the Frontend Engineer Task:
 
 ## Demo 
 
-[Link](https://www.loom.com/share/e42678813bf94af8a3ca94992bfa601a?sid=10d52552-ffb7-4b1c-8075-9ade54f43e88)
+[Link](https://www.loom.com/share/df3757c32ad54851a42a48067d170496?sid=c4be6798-899d-4648-b80a-8a0318948ff4)
 
 ## Architecture
 
@@ -130,5 +130,6 @@ cd server
 npm install
 npm run dev
 ```
+
 
 
