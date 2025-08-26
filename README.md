@@ -11,6 +11,10 @@ This project implements the core requirements from the Frontend Engineer Task:
 - **Backend Integration**: Automatic saving of component changes to database
 - **Unique Component IDs**: Each component gets a unique identifier for sharing/retrieval
 
+## Demo 
+
+[Link](https://www.loom.com/share/e42678813bf94af8a3ca94992bfa601a?sid=10d52552-ffb7-4b1c-8075-9ade54f43e88)
+
 ## Architecture
 
 ### Frontend (React + TypeScript)
@@ -126,4 +130,5 @@ cd server
 npm install
 npm run dev
 ```
+
 
